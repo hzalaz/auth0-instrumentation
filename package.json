@@ -32,6 +32,7 @@
     "v8-profiler-node8": "^6.0.1"
   },
   "devDependencies": {
+    "async": "^3.0.1",
     "dotenv": "^6.0.0",
     "express": "^4.16.3",
     "hapi16": "npm:hapi@16.x.x",
