@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('assert');
-const buildWaterfallTracer = require('../lib/watefall_tracer');
+const buildWaterfallTracer = require('../lib/waterfall_tracer');
 const async = require('async');
 
 
