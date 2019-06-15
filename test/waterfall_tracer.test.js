@@ -140,6 +140,27 @@ describe('waterfall tracer', function() {
         }
       },
 
+      traceableBaseStep3: {
+        handler: function baseStep3(span, arg1, arg2, cb) {
+          assert.ok(span instanceof StubSpan);
+
+          assert.equal(arg1, '2.res1');
+          assert.equal(arg2, '2.res2');
+
+          cb(null, '3.res1', '3.res2', '3.res3');
+        },
+        getTags: function(arg1, arg2) {
+          assert.equal(arg1, '2.res1');
+          assert.equal(arg2, '2.res2');
+
+          return {
+            '1.baseStep3': '1.value',
+            '2.baseStep3': '2.value'
+          };
+        },
+        isTraceableStep: true
+      },
+
       errorStep2: {
         handler: function baseStep2(arg1, arg2, arg3, arg4, cb) {
           assert.equal(arg1, '1.res1');
@@ -677,6 +698,46 @@ describe('waterfall tracer', function() {
           assert.ifError(err);
 
           assert.deepEqual(tracer.getFullTrace(), expectedTrace);
+
+          done();
+        });
+      });
+
+      it('injects span into traceable steps', (done) => {
+        const tracer = new TracerStub();
+        const waterfallTracer = buildWaterfallTracer(tracer, new StubLogger());
+
+        const stepDefinitions = [
+          {
+            handler: namedDefinitions.baseStep1.handler,
+            isTraceableStep: false,
+            name: 'baseStep1',
+            getTags: namedDefinitions.baseStep1.getTags
+          },
+          {
+            handler: namedDefinitions.baseStep2.handler,
+            isTraceableStep: false,
+            name: 'baseStep2',
+            getTags: namedDefinitions.baseStep2.getTags,
+          },
+          {
+            handler: namedDefinitions.traceableBaseStep3.handler,
+            isTraceableStep: true,
+            name: 'traceableBaseStep3',
+            getTags: namedDefinitions.traceableBaseStep3.getTags,
+          }
+        ];
+
+        const steps = waterfallTracer.decorateSteps(buildGetSequenceContext(tracer), stepDefinitions);
+
+        steps.unshift(namedDefinitions.noArgsBaseStep0.handler);
+
+        async.waterfall(steps, (err, arg1, arg2, arg3) => {
+          assert.ifError(err);
+
+          assert.equal(arg1, '3.res1');
+          assert.equal(arg2, '3.res2');
+          assert.equal(arg3, '3.res3');
 
           done();
         });
