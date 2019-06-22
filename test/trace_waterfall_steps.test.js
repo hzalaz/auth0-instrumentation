@@ -1,17 +1,10 @@
 'use strict';
 
 const assert = require('assert');
-const buildWaterfallTracer = require('../lib/waterfall_tracer');
+const traceWaterfallSteps = require('../lib/trace_waterfall_steps');
 const async = require('async');
 
-
 describe('waterfall tracer', function() {
-  class StubLogger {
-    warn() {
-
-    }
-  }
-
   class StubSpan {
     constructor(operation) {
       this.operation = operation;
@@ -225,8 +218,7 @@ describe('waterfall tracer', function() {
 
       it('calls each function with the correct arguments', (done) => {
         const tracer = new TracerStub();
-        const waterfallTracer = buildWaterfallTracer(tracer, new StubLogger());
-        const steps = waterfallTracer.decorateSteps(buildGetSequenceContext(tracer), stepDefinitions);
+        const steps = traceWaterfallSteps(tracer, buildGetSequenceContext(tracer), stepDefinitions);
 
         async.waterfall(steps, (err, arg1, arg2, arg3) => {
           assert.ifError(err);
@@ -308,8 +300,7 @@ describe('waterfall tracer', function() {
         ];
 
         const tracer = new TracerStub();
-        const waterfallTracer = buildWaterfallTracer(tracer, new StubLogger());
-        const steps = waterfallTracer.decorateSteps(buildGetSequenceContext(tracer), stepDefinitions);
+        const steps = traceWaterfallSteps(tracer, buildGetSequenceContext(tracer), stepDefinitions);
 
         async.waterfall(steps, (err) => {
           assert.ifError(err);
@@ -361,8 +352,7 @@ describe('waterfall tracer', function() {
 
         it('does not fail', (done) => {
           const tracer = new TracerStub();
-          const waterfallTracer = buildWaterfallTracer(tracer, new StubLogger());
-          const steps = waterfallTracer.decorateSteps(buildGetSequenceContext(tracer), stepDefinitions);
+          const steps = traceWaterfallSteps(tracer, buildGetSequenceContext(tracer), stepDefinitions);
 
           async.waterfall(steps, (err, arg1, arg2, arg3) => {
             assert.ifError(err);
@@ -442,8 +432,7 @@ describe('waterfall tracer', function() {
           ];
 
           const tracer = new TracerStub();
-          const waterfallTracer = buildWaterfallTracer(tracer, new StubLogger());
-          const steps = waterfallTracer.decorateSteps(buildGetSequenceContext(tracer), stepDefinitions);
+          const steps = traceWaterfallSteps(tracer, buildGetSequenceContext(tracer), stepDefinitions);
 
           async.waterfall(steps, (err) => {
             assert.ifError(err);
@@ -458,8 +447,7 @@ describe('waterfall tracer', function() {
       describe('when it fails getting the context for the sequence', () => {
         it('does not fail', (done) => {
           const tracer = new TracerStub();
-          const waterfallTracer = buildWaterfallTracer(tracer, new StubLogger());
-          const steps = waterfallTracer.decorateSteps(() => {
+          const steps = traceWaterfallSteps(tracer, () => {
             throw new Error();
           }, stepDefinitions);
 
@@ -516,8 +504,7 @@ describe('waterfall tracer', function() {
 
         it('calls each function with the correct arguments', (done) => {
           const tracer = new TracerStub();
-          const waterfallTracer = buildWaterfallTracer(tracer, new StubLogger());
-          const steps = waterfallTracer.decorateSteps(buildGetSequenceContext(tracer), stepDefinitions);
+          const steps = traceWaterfallSteps(tracer, buildGetSequenceContext(tracer), stepDefinitions);
 
           async.waterfall(steps, (err) => {
             assert.equal(err.message, 'myError');
@@ -585,8 +572,7 @@ describe('waterfall tracer', function() {
           ];
 
           const tracer = new TracerStub();
-          const waterfallTracer = buildWaterfallTracer(tracer, new StubLogger());
-          const steps = waterfallTracer.decorateSteps(buildGetSequenceContext(tracer), stepDefinitions);
+          const steps = traceWaterfallSteps(tracer, buildGetSequenceContext(tracer), stepDefinitions);
 
           async.waterfall(steps, () => {
             assert.deepEqual(tracer.getFullTrace(), expectedTrace);
@@ -626,8 +612,7 @@ describe('waterfall tracer', function() {
 
       it('calls each function with the correct arguments', (done) => {
         const tracer = new TracerStub();
-        const waterfallTracer = buildWaterfallTracer(tracer, new StubLogger());
-        const steps = waterfallTracer.decorateSteps(buildGetSequenceContext(tracer), stepDefinitions);
+        const steps = traceWaterfallSteps(tracer, buildGetSequenceContext(tracer), stepDefinitions);
 
         steps.unshift(namedDefinitions.noArgsBaseStep0.handler);
         steps.push(namedDefinitions.baseStep3.handler);
@@ -688,8 +673,7 @@ describe('waterfall tracer', function() {
         ];
 
         const tracer = new TracerStub();
-        const waterfallTracer = buildWaterfallTracer(tracer, new StubLogger());
-        const steps = waterfallTracer.decorateSteps(buildGetSequenceContext(tracer), stepDefinitions);
+        const steps = traceWaterfallSteps(tracer, buildGetSequenceContext(tracer), stepDefinitions);
 
         steps.unshift(namedDefinitions.noArgsBaseStep0.handler);
         steps.push(namedDefinitions.baseStep3.handler);
@@ -705,7 +689,6 @@ describe('waterfall tracer', function() {
 
       it('injects span into traceable steps', (done) => {
         const tracer = new TracerStub();
-        const waterfallTracer = buildWaterfallTracer(tracer, new StubLogger());
 
         const stepDefinitions = [
           {
@@ -728,7 +711,7 @@ describe('waterfall tracer', function() {
           }
         ];
 
-        const steps = waterfallTracer.decorateSteps(buildGetSequenceContext(tracer), stepDefinitions);
+        const steps = traceWaterfallSteps(tracer, buildGetSequenceContext(tracer), stepDefinitions);
 
         steps.unshift(namedDefinitions.noArgsBaseStep0.handler);
 
@@ -772,8 +755,7 @@ describe('waterfall tracer', function() {
 
         it('does not fail', (done) => {
           const tracer = new TracerStub();
-          const waterfallTracer = buildWaterfallTracer(tracer, new StubLogger());
-          const steps = waterfallTracer.decorateSteps(buildGetSequenceContext(tracer), stepDefinitions);
+          const steps = traceWaterfallSteps(tracer, buildGetSequenceContext(tracer), stepDefinitions);
 
           steps.unshift(namedDefinitions.noArgsBaseStep0.handler);
           steps.push(namedDefinitions.baseStep3.handler);
@@ -832,8 +814,7 @@ describe('waterfall tracer', function() {
           ];
 
           const tracer = new TracerStub();
-          const waterfallTracer = buildWaterfallTracer(tracer, new StubLogger());
-          const steps = waterfallTracer.decorateSteps(buildGetSequenceContext(tracer), stepDefinitions);
+          const steps = traceWaterfallSteps(tracer, buildGetSequenceContext(tracer), stepDefinitions);
 
           steps.unshift(namedDefinitions.noArgsBaseStep0.handler);
           steps.push(namedDefinitions.baseStep3.handler);
@@ -851,8 +832,7 @@ describe('waterfall tracer', function() {
       describe('when it fails getting the context for the sequence', () => {
         it('does not fail', (done) => {
           const tracer = new TracerStub();
-          const waterfallTracer = buildWaterfallTracer(tracer, new StubLogger());
-          const steps = waterfallTracer.decorateSteps(() => {
+          const steps = traceWaterfallSteps(tracer, () => {
             throw new Error();
           }, stepDefinitions);
 
@@ -901,8 +881,7 @@ describe('waterfall tracer', function() {
 
         it('calls each function with the correct arguments', (done) => {
           const tracer = new TracerStub();
-          const waterfallTracer = buildWaterfallTracer(tracer, new StubLogger());
-          const steps = waterfallTracer.decorateSteps(buildGetSequenceContext(tracer), stepDefinitions);
+          const steps = traceWaterfallSteps(tracer, buildGetSequenceContext(tracer), stepDefinitions);
 
           steps.unshift(namedDefinitions.noArgsBaseStep0.handler);
           steps.push(namedDefinitions.baseStep3.handler);
@@ -961,8 +940,7 @@ describe('waterfall tracer', function() {
           ];
 
           const tracer = new TracerStub();
-          const waterfallTracer = buildWaterfallTracer(tracer, new StubLogger());
-          const steps = waterfallTracer.decorateSteps(buildGetSequenceContext(tracer), stepDefinitions);
+          const steps = traceWaterfallSteps(tracer, buildGetSequenceContext(tracer), stepDefinitions);
 
           steps.unshift(namedDefinitions.noArgsBaseStep0.handler);
           steps.push(namedDefinitions.baseStep3.handler);

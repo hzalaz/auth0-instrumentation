@@ -4,6 +4,7 @@ var ErrorReporter = require('./lib/error_reporter');
 var Metrics = require('./lib/metrics');
 var Profiler = require('./lib/profiler');
 var Tracer = require('./lib/tracer');
+var traceWaterfallSteps = require('./lib/trace_waterfall_steps');
 
 /**
  * @typedef {Object} InstrumentationParams
@@ -51,6 +52,12 @@ module.exports = {
         this.logger.reopenFileStreams();
         this.logger.info('The log file has been rotated.');
       });
+    }
+  },
+
+  utils: {
+    tracing: {
+      traceWaterfallSteps
     }
   }
 };
